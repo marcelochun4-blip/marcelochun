@@ -1,0 +1,45 @@
+{
+  "manifest_version": 3,
+  "name": "Zalo KO-VI Auto Translator",
+  "version": "1.0.0",
+  "description": "Zalo Web 한국어-베트남어 자동 번역 보조 도구 (수신 VI→KO 오버레이 / 송신 KO→VI 미리보기).",
+  "default_locale": "ko",
+  "permissions": ["storage"],
+  "host_permissions": [
+    "https://web.zalo.me/*",
+    "http://127.0.0.1:8787/*",
+    "http://localhost:8787/*"
+  ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_title": "Zalo 번역 설정",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://web.zalo.me/*"],
+      "js": ["content/selectors.js", "content/api.js", "content/content.js", "content/compose.js"],
+      "css": ["content/overlay.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["history/history.html", "history/history.js", "history/history.css"],
+      "matches": ["https://web.zalo.me/*"]
+    }
+  ]
+}

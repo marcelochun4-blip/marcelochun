@@ -1,0 +1,16 @@
+# 의존성
+node_modules/
+
+# 환경 변수 (API 키 포함 — 절대 커밋 금지, NF-03)
+.env
+backend/.env
+
+# 로컬 히스토리 DB (NF-04: 로컬에만 보관)
+backend/data/
+*.db
+*.db-shm
+*.db-wal
+
+# 로그 / 임시
+*.log
+.DS_Store

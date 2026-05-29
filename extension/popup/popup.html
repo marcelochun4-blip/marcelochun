@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="popup.css" />
+    <title>Zalo 번역 설정</title>
+  </head>
+  <body>
+    <header class="pp-header">
+      <h1>Zalo 번역기</h1>
+      <span class="pp-version">v1.0</span>
+    </header>
+
+    <!-- F-19: 번역 기능 ON/OFF 토글 -->
+    <section class="pp-row">
+      <label class="pp-switch">
+        <input type="checkbox" id="enabledToggle" />
+        <span class="pp-slider"></span>
+      </label>
+      <div class="pp-label">
+        <strong>자동 번역</strong>
+        <small id="enabledState">켜짐</small>
+      </div>
+    </section>
+
+    <!-- F-12: 원문+번역 동시 전송 옵션 기본값 -->
+    <section class="pp-row">
+      <label class="pp-check">
+        <input type="checkbox" id="bilingualToggle" />
+        <span>송신 시 원문(KO)+번역(VI) 함께 삽입</span>
+      </label>
+    </section>
+
+    <section class="pp-field">
+      <label for="backendUrl">백엔드 주소</label>
+      <input type="text" id="backendUrl" placeholder="http://127.0.0.1:8787" />
+    </section>
+
+    <!-- F-22: 백엔드/API 상태 표시 -->
+    <section class="pp-status" id="statusBox">
+      <span class="pp-dot" id="statusDot"></span>
+      <span id="statusText">상태 확인 중…</span>
+    </section>
+
+    <footer class="pp-footer">
+      <button id="historyBtn" class="pp-btn">번역 히스토리 열기</button>
+    </footer>
+
+    <script src="popup.js"></script>
+  </body>
+</html>

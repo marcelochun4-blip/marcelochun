@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="history.css" />
+    <title>Zalo 번역 히스토리</title>
+  </head>
+  <body>
+    <header class="hh-header">
+      <h1>번역 히스토리</h1>
+      <div class="hh-actions">
+        <button id="exportBtn" class="hh-btn">CSV 내보내기</button>
+        <button id="deleteFilteredBtn" class="hh-btn hh-danger">조건 삭제</button>
+      </div>
+    </header>
+
+    <!-- F-16: 채팅방별 / 날짜별 / 방향 필터 -->
+    <section class="hh-filters">
+      <label>
+        채팅방
+        <select id="roomFilter"><option value="">전체</option></select>
+      </label>
+      <label>
+        방향
+        <select id="directionFilter">
+          <option value="">전체</option>
+          <option value="VI2KO">VI → KO (수신)</option>
+          <option value="KO2VI">KO → VI (송신)</option>
+        </select>
+      </label>
+      <label>시작일 <input type="date" id="fromFilter" /></label>
+      <label>종료일 <input type="date" id="toFilter" /></label>
+      <label>검색 <input type="text" id="qFilter" placeholder="원문/번역문" /></label>
+      <button id="applyBtn" class="hh-btn">적용</button>
+      <button id="resetBtn" class="hh-btn hh-ghost">초기화</button>
+    </section>
+
+    <section class="hh-meta"><span id="countLabel">로딩 중…</span></section>
+
+    <table class="hh-table">
+      <thead>
+        <tr>
+          <th style="width: 150px">시각</th>
+          <th style="width: 130px">채팅방</th>
+          <th style="width: 110px">발신자</th>
+          <th style="width: 90px">방향</th>
+          <th>원문</th>
+          <th>번역문</th>
+          <th style="width: 60px"></th>
+        </tr>
+      </thead>
+      <tbody id="rows"></tbody>
+    </table>
+
+    <div class="hh-pager">
+      <button id="prevBtn" class="hh-btn hh-ghost">이전</button>
+      <span id="pageLabel"></span>
+      <button id="nextBtn" class="hh-btn hh-ghost">다음</button>
+    </div>
+
+    <div id="backendWarn" class="hh-warn" hidden>
+      백엔드(http://127.0.0.1:8787)에 연결할 수 없습니다. 서버를 먼저 실행하세요.
+    </div>
+
+    <script src="history.js"></script>
+  </body>
+</html>
