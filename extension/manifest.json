@@ -3,7 +3,6 @@
   "name": "Zalo KO-VI Auto Translator",
   "version": "1.0.0",
   "description": "Zalo Web 한국어-베트남어 자동 번역 보조 도구 (수신 VI→KO 오버레이 / 송신 KO→VI 미리보기).",
-  "default_locale": "ko",
   "permissions": ["storage"],
   "host_permissions": [
     "https://web.zalo.me/*",
