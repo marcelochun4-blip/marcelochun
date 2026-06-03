@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AquaCheck — Water Quality Testing Simulator</title>
+<style>
+  :root{
+    --bg:#06141f;
+    --bg2:#0b2233;
+    --panel:#0e2c41;
+    --panel2:#123852;
+    --line:#1d4d6b;
+    --text:#e7f4fb;
+    --muted:#8fb6cc;
+    --accent:#27c4f5;
+    --good:#22c55e;
+    --warn:#f5b73d;
+    --bad:#ef4444;
+    --shadow:0 10px 30px rgba(0,0,0,.35);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:"Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;
+    background:radial-gradient(1200px 600px at 70% -10%,#0d3247 0%,var(--bg) 55%);
+    color:var(--text);
+    min-height:100vh;
+    line-height:1.45;
+  }
+  header.top{
+    text-align:center;
+    padding:26px 16px 6px;
+  }
+  header.top h1{
+    margin:0;
+    font-size:30px;
+    letter-spacing:.5px;
+  }
+  header.top h1 .drop{filter:drop-shadow(0 2px 6px rgba(39,196,245,.5));}
+  header.top p{
+    margin:6px 0 0;
+    color:var(--muted);
+    font-size:15px;
+  }
+  .sdg{
+    display:inline-block;
+    margin-top:10px;
+    background:#0a4f6e;
+    border:1px solid var(--line);
+    color:#bfeaff;
+    padding:4px 12px;
+    border-radius:999px;
+    font-size:12.5px;
+    font-weight:600;
+  }
+  .wrap{
+    max-width:1080px;
+    margin:0 auto;
+    padding:14px 16px 60px;
+  }
+
+  /* Stepper */
+  .steps{
+    display:flex;
+    gap:8px;
+    justify-content:center;
+    flex-wrap:wrap;
+    margin:14px 0 22px;
+  }
+  .step{
+    font-size:12.5px;
+    color:var(--muted);
+    background:var(--panel);
+    border:1px solid var(--line);
+    padding:6px 12px;
+    border-radius:999px;
+    display:flex;
+    align-items:center;
+    gap:7px;
+  }
+  .step .num{
+    width:18px;height:18px;border-radius:50%;
+    background:#0a3a54;display:grid;place-items:center;
+    font-size:11px;font-weight:700;color:#bfeaff;
+  }
+  .step.active{color:var(--text);border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset;}
+  .step.active .num{background:var(--accent);color:#04222f;}
+
+  .card{
+    background:linear-gradient(180deg,var(--panel) 0%,var(--bg2) 100%);
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:20px;
+    box-shadow:var(--shadow);
+    margin-bottom:20px;
+  }
+  .card h2{
+    margin:0 0 4px;
+    font-size:19px;
+    display:flex;align-items:center;gap:9px;
+  }
+  .card .sub{color:var(--muted);font-size:13.5px;margin:0 0 16px;}
+
+  /* Source selection */
+  .sources{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(210px,1fr));
+    gap:12px;
+  }
+  .source{
+    text-align:left;
+    background:var(--panel2);
+    border:1px solid var(--line);
+    border-radius:13px;
+    padding:14px;
+    cursor:pointer;
+    transition:.15s;
+    color:var(--text);
+    font:inherit;
+  }
+  .source:hover{transform:translateY(-2px);border-color:var(--accent);}
+  .source.selected{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent) inset;background:#103b54;}
+  .source .emoji{font-size:26px;}
+  .source .name{font-weight:700;margin:6px 0 3px;font-size:15px;}
+  .source .desc{color:var(--muted);font-size:12.5px;}
+
+  /* Sliders */
+  .params{display:grid;grid-template-columns:1fr 1fr;gap:16px 26px;}
+  @media(max-width:640px){.params{grid-template-columns:1fr;}}
+  .param .plabel{
+    display:flex;justify-content:space-between;align-items:baseline;
+    font-size:14px;margin-bottom:4px;
+  }
+  .param .pname{font-weight:600;}
+  .param .pval{font-variant-numeric:tabular-nums;font-weight:700;color:var(--accent);}
+  .param .pval small{color:var(--muted);font-weight:500;}
+  input[type=range]{
+    -webkit-appearance:none;appearance:none;width:100%;height:7px;border-radius:5px;
+    background:#0a3650;outline:none;margin:4px 0 2px;
+  }
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none;appearance:none;width:20px;height:20px;border-radius:50%;
+    background:var(--accent);cursor:pointer;border:3px solid #04222f;box-shadow:0 1px 4px rgba(0,0,0,.4);
+  }
+  input[type=range]::-moz-range-thumb{
+    width:18px;height:18px;border-radius:50%;background:var(--accent);cursor:pointer;border:3px solid #04222f;
+  }
+  .ideal{font-size:11.5px;color:var(--muted);}
+
+  .btn{
+    font:inherit;font-weight:700;cursor:pointer;border:none;border-radius:11px;
+    padding:12px 22px;background:var(--accent);color:#04222f;font-size:15px;transition:.15s;
+  }
+  .btn:hover{filter:brightness(1.08);transform:translateY(-1px);}
+  .btn.ghost{background:transparent;color:var(--text);border:1px solid var(--line);}
+  .btn.ghost:hover{border-color:var(--accent);}
+  .btn:disabled{opacity:.45;cursor:not-allowed;transform:none;}
+  .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px;}
+
+  .hidden{display:none;}
+
+  /* Score gauge */
+  .scorewrap{display:flex;gap:22px;align-items:center;flex-wrap:wrap;}
+  .gauge{
+    --p:0;
+    width:150px;height:150px;border-radius:50%;flex:0 0 auto;
+    background:conic-gradient(var(--gcol) calc(var(--p)*1%),#0a3650 0);
+    display:grid;place-items:center;position:relative;
+    transition:--p 1s ease;
+  }
+  .gauge::before{content:"";position:absolute;inset:14px;border-radius:50%;background:var(--bg2);}
+  .gauge .gnum{position:relative;text-align:center;}
+  .gauge .gnum b{font-size:40px;line-height:1;}
+  .gauge .gnum span{font-size:12px;color:var(--muted);display:block;}
+  .verdict{flex:1;min-width:220px;}
+  .verdict .tag{
+    display:inline-block;padding:5px 14px;border-radius:999px;font-weight:700;font-size:14px;margin-bottom:8px;
+  }
+  .verdict p{margin:0;color:var(--muted);font-size:14px;}
+
+  /* Impact rows */
+  .impacts{display:grid;gap:10px;margin-top:4px;}
+  .impact{
+    display:flex;gap:12px;align-items:flex-start;
+    background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:12px 14px;
+    border-left:5px solid var(--line);
+  }
+  .impact.ok{border-left-color:var(--good);}
+  .impact.warn{border-left-color:var(--warn);}
+  .impact.bad{border-left-color:var(--bad);}
+  .impact .ic{font-size:22px;}
+  .impact .body b{display:block;font-size:14.5px;margin-bottom:2px;}
+  .impact .body span{font-size:13px;color:var(--muted);}
+  .pill{font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;margin-left:6px;}
+  .pill.ok{background:#0c3a23;color:#7ff0b0;}
+  .pill.warn{background:#3d3211;color:#ffd987;}
+  .pill.bad{background:#3d1414;color:#ff9b9b;}
+
+  /* Remediation */
+  .remeds{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;}
+  .remed{
+    text-align:left;background:var(--panel2);border:1px solid var(--line);border-radius:12px;
+    padding:13px;cursor:pointer;transition:.15s;color:var(--text);font:inherit;
+  }
+  .remed:hover{border-color:var(--accent);}
+  .remed.on{border-color:var(--good);box-shadow:0 0 0 2px var(--good) inset;background:#0e3a2a;}
+  .remed .rtop{display:flex;justify-content:space-between;align-items:center;}
+  .remed .rname{font-weight:700;font-size:14.5px;}
+  .remed .check{font-size:18px;color:var(--good);opacity:0;}
+  .remed.on .check{opacity:1;}
+  .remed .rdesc{font-size:12.5px;color:var(--muted);margin-top:5px;}
+  .remed .rchem{font-size:11.5px;color:#7fc9e8;margin-top:6px;font-style:italic;}
+
+  .delta{font-size:13px;color:var(--muted);margin-top:14px;text-align:center;}
+  .delta b{color:var(--good);}
+
+  footer{text-align:center;color:var(--muted);font-size:12px;padding:10px 16px 30px;}
+  .legend{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-top:10px;font-size:12px;color:var(--muted);}
+  .legend i{width:11px;height:11px;border-radius:3px;display:inline-block;margin-right:5px;vertical-align:middle;}
+  a{color:var(--accent);}
+</style>
+</head>
+<body>
+<header class="top">
+  <h1><span class="drop">💧</span> AquaCheck</h1>
+  <p>Water Quality Testing Simulator — chemistry meets biology</p>
+  <div class="sdg">🌍 UN SDG 6 — Clean Water &amp; Sanitation</div>
+</header>
+
+<div class="wrap">
+  <div class="steps">
+    <div class="step active" data-step="1"><span class="num">1</span>Pick a sample</div>
+    <div class="step" data-step="2"><span class="num">2</span>Chemical analysis</div>
+    <div class="step" data-step="3"><span class="num">3</span>Biological impact</div>
+    <div class="step" data-step="4"><span class="num">4</span>Remediation lab</div>
+  </div>
+
+  <!-- STEP 1: SOURCE -->
+  <section class="card" id="card-source">
+    <h2>🧪 1 · Choose a water source</h2>
+    <p class="sub">Pick where your sample came from. Each source loads realistic starting chemistry — you can fine-tune it in the next step.</p>
+    <div class="sources" id="sources"></div>
+    <div class="actions">
+      <button class="btn" id="toAnalysis" disabled>Analyze sample →</button>
+    </div>
+  </section>
+
+  <!-- STEP 2: CHEMISTRY -->
+  <section class="card hidden" id="card-chem">
+    <h2>⚗️ 2 · Chemical analysis <span id="chemSourceTag" style="font-size:13px;color:var(--muted);font-weight:400;"></span></h2>
+    <p class="sub">Adjust the chemical readings of your sample. These values drive everything biology sees downstream.</p>
+    <div class="params" id="params"></div>
+    <div class="actions">
+      <button class="btn ghost" id="backTo1">← Change source</button>
+      <button class="btn" id="toImpact">See biological impact →</button>
+    </div>
+  </section>
+
+  <!-- STEP 3: BIOLOGY + SCORE -->
+  <section class="card hidden" id="card-impact">
+    <h2>🐟 3 · Biological impact &amp; ecosystem health</h2>
+    <p class="sub">How the chemistry above affects living things in the water — and a single health score for the whole ecosystem.</p>
+    <div class="scorewrap">
+      <div class="gauge" id="gauge" style="--gcol:var(--good)">
+        <div class="gnum"><b id="scoreNum">0</b><span>/ 100</span></div>
+      </div>
+      <div class="verdict">
+        <span class="tag" id="verdictTag">—</span>
+        <p id="verdictText">—</p>
+      </div>
+    </div>
+    <div class="legend">
+      <span><i style="background:var(--good)"></i>80–100 Healthy</span>
+      <span><i style="background:var(--warn)"></i>50–79 Stressed</span>
+      <span><i style="background:var(--bad)"></i>0–49 Critical</span>
+    </div>
+    <div class="impacts" id="impacts" style="margin-top:16px;"></div>
+    <div class="actions">
+      <button class="btn ghost" id="backTo2">← Adjust chemistry</button>
+      <button class="btn" id="toRemed">Open remediation lab →</button>
+    </div>
+  </section>
+
+  <!-- STEP 4: REMEDIATION -->
+  <section class="card hidden" id="card-remed">
+    <h2>🌿 4 · Remediation lab</h2>
+    <p class="sub">You're the environmental engineer. Apply treatments to clean the water and watch the health score recover in real time.</p>
+    <div class="scorewrap" style="margin-bottom:16px;">
+      <div class="gauge" id="gauge2" style="--gcol:var(--good)">
+        <div class="gnum"><b id="scoreNum2">0</b><span>/ 100</span></div>
+      </div>
+      <div class="verdict">
+        <span class="tag" id="verdictTag2">—</span>
+        <p id="verdictText2">—</p>
+        <div class="delta" id="delta"></div>
+      </div>
+    </div>
+    <div class="remeds" id="remeds"></div>
+    <div class="actions">
+      <button class="btn ghost" id="backTo3">← Back to impact</button>
+      <button class="btn ghost" id="resetAll">↺ Start over</button>
+    </div>
+  </section>
+</div>
+
+<footer>
+  Built for the CSP IB interdisciplinary project · Chemistry × Biology · A simulation for education — not a substitute for certified water testing.
+</footer>
+
+<script>
+/* =======================================================================
+   AquaCheck — Water Quality Testing Simulator
+   Single-file educational model. All thresholds below are simplified,
+   teaching-friendly approximations based on common freshwater guidelines.
+   ======================================================================= */
+
+/* ---- Parameter definitions (the chemistry the user controls) ---- */
+const PARAMS = [
+  { key:"ph",        name:"pH",                unit:"",      min:3,   max:10,  step:0.1, ideal:"6.5 – 8.5 ideal" },
+  { key:"do",        name:"Dissolved O₂",      unit:"mg/L",  min:0,   max:14,  step:0.1, ideal:"> 6 mg/L healthy" },
+  { key:"nitrate",   name:"Nitrates",          unit:"mg/L",  min:0,   max:50,  step:0.5, ideal:"< 10 mg/L safe" },
+  { key:"phosphate", name:"Phosphates",        unit:"mg/L",  min:0,   max:6,   step:0.1, ideal:"< 0.1 mg/L ideal" },
+  { key:"metals",    name:"Heavy metals",      unit:"index", min:0,   max:10,  step:0.5, ideal:"0 = none, 10 = severe" },
+  { key:"turbidity", name:"Turbidity",         unit:"NTU",   min:0,   max:100, step:1,   ideal:"< 5 NTU clear" },
+];
+
+/* ---- Water source presets ---- */
+const SOURCES = [
+  { id:"clean",  emoji:"🏔️", name:"Mountain spring", desc:"Clean reference sample — the baseline to compare against.",
+    vals:{ph:7.4, do:9.5, nitrate:1.5, phosphate:0.05, metals:0, turbidity:1} },
+  { id:"agri",   emoji:"🌾", name:"Agricultural runoff", desc:"Fertilizer- and manure-rich water draining from farmland.",
+    vals:{ph:6.4, do:5.0, nitrate:28, phosphate:3.5, metals:1.5, turbidity:35} },
+  { id:"indus",  emoji:"🏭", name:"Industrial discharge", desc:"Factory effluent — acidic and laden with heavy metals.",
+    vals:{ph:4.6, do:3.2, nitrate:9, phosphate:0.8, metals:7.5, turbidity:28} },
+  { id:"urban",  emoji:"🏙️", name:"Urban stormwater", desc:"City drainage carrying road grime, oil and litter.",
+    vals:{ph:6.9, do:6.0, nitrate:18, phosphate:1.4, metals:4.0, turbidity:45} },
+];
+
+/* ---- State ---- */
+let state = {
+  source:null,
+  vals:{},
+  remediation:{}, // id -> bool
+  baseScore:0,
+};
+
+/* =======================================================================
+   SCORING MODEL
+   Each parameter contributes a 0–100 sub-score; the ecosystem health
+   score is a weighted average. Closer to the "ideal" band = higher score.
+   ======================================================================= */
+function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
+
+function subScores(v){
+  // pH: best near 7.4, tolerable 6.5–8.5
+  const phPenalty = Math.abs(v.ph - 7.4);
+  const ph = clamp(100 - phPenalty*28, 0, 100);
+
+  // Dissolved oxygen: higher is better, 9+ is great, <2 is lethal
+  const dox = clamp((v.do/9)*100, 0, 100);
+
+  // Nitrates: 0 best, 10 = drinking limit, 50 = awful
+  const nit = clamp(100 - (v.nitrate/50)*100, 0, 100);
+
+  // Phosphates: 0.1 ideal, drives algal blooms fast
+  const pho = clamp(100 - (v.phosphate/6)*100, 0, 100);
+
+  // Heavy metals: 0 ideal, index 0–10
+  const met = clamp(100 - (v.metals/10)*100, 0, 100);
+
+  // Turbidity: clarity, 0 best
+  const tur = clamp(100 - (v.turbidity/100)*100, 0, 100);
+
+  return {ph,dox,nit,pho,met,tur};
+}
+
+function healthScore(v){
+  const s = subScores(v);
+  // Weights: oxygen and metals are life-or-death, weighted heavier.
+  const score =
+      s.ph  * 0.18 +
+      s.dox * 0.24 +
+      s.nit * 0.16 +
+      s.pho * 0.14 +
+      s.met * 0.20 +
+      s.tur * 0.08;
+  return Math.round(clamp(score,0,100));
+}
+
+function band(score){
+  if(score>=80) return {tag:"Healthy",   col:"var(--good)", cls:"ok"};
+  if(score>=50) return {tag:"Stressed",  col:"var(--warn)", cls:"warn"};
+  return            {tag:"Critical",  col:"var(--bad)",  cls:"bad"};
+}
+
+/* =======================================================================
+   BIOLOGICAL IMPACT RULES  (chemistry → living things)
+   ======================================================================= */
+function biologicalImpacts(v){
+  const out = [];
+
+  // FISH — driven by dissolved oxygen + pH
+  if(v.do >= 7 && v.ph>=6.5 && v.ph<=8.5){
+    out.push(["🐟","Fish (trout, sensitive species)","Oxygen and pH are within tolerance — sensitive fish can thrive.","ok"]);
+  } else if(v.do >= 4 && v.ph>=5.5){
+    out.push(["🐟","Fish","Only hardy fish (carp) survive. Trout need DO > 7 mg/L — they would suffocate or leave.","warn"]);
+  } else {
+    out.push(["🐟","Fish","Oxygen too low / water too acidic — fish kill likely. Population collapse.","bad"]);
+  }
+
+  // MICROBES / ALGAE — driven by nitrate + phosphate (eutrophication)
+  if(v.nitrate > 10 && v.phosphate > 0.5){
+    out.push(["🦠","Microbes &amp; algae","Excess nitrate + phosphate fuel an algal bloom. Cyanobacteria dominate and release toxins.","bad"]);
+  } else if(v.nitrate > 5 || v.phosphate > 0.2){
+    out.push(["🦠","Microbes &amp; algae","Mild nutrient enrichment — algae growing faster than normal. Bloom risk if it rises.","warn"]);
+  } else {
+    out.push(["🦠","Microbes &amp; algae","Nutrient levels are balanced — a healthy, diverse microbial community.","ok"]);
+  }
+
+  // AQUATIC PLANTS — pH + turbidity (light) + metals
+  if(v.turbidity > 30){
+    out.push(["🌿","Aquatic plants","Water too cloudy — sunlight can't reach submerged plants, so photosynthesis stalls.","bad"]);
+  } else if(v.ph < 5.5 || v.metals > 5){
+    out.push(["🌿","Aquatic plants","Acidity / heavy metals damage roots and block nutrient uptake. Plants weaken.","warn"]);
+  } else {
+    out.push(["🌿","Aquatic plants","Good light and chemistry — rooted plants oxygenate the water and shelter wildlife.","ok"]);
+  }
+
+  // INVERTEBRATES — overall sensitive bio-indicators (metals + DO)
+  if(v.metals > 4 || v.do < 4){
+    out.push(["🦐","Invertebrates (mayflies, shrimp)","Pollution-sensitive bio-indicators die off. Their absence signals a degraded stream.","bad"]);
+  } else if(v.metals > 1.5 || v.do < 6){
+    out.push(["🦐","Invertebrates","Sensitive species declining; tolerant worms and midges start to dominate.","warn"]);
+  } else {
+    out.push(["🦐","Invertebrates","Rich invertebrate life — a classic sign of a clean, well-oxygenated stream.","ok"]);
+  }
+
+  // HUMAN RISK — nitrate (drinking) + metals + pH
+  if(v.nitrate > 10 || v.metals > 4 || v.ph < 5.5){
+    let why = [];
+    if(v.nitrate>10) why.push("nitrates above the 10 mg/L drinking limit (risk to infants)");
+    if(v.metals>4)   why.push("toxic heavy-metal load");
+    if(v.ph<5.5)     why.push("corrosively acidic");
+    out.push(["👤","Human safety","Unsafe to drink — "+why.join("; ")+".","bad"]);
+  } else if(v.nitrate > 5 || v.metals > 1.5 || v.turbidity > 20){
+    out.push(["👤","Human safety","Marginal — would need treatment (filtering/boiling) before it's safe to drink.","warn"]);
+  } else {
+    out.push(["👤","Human safety","Within common drinking-water guidelines for these parameters.","ok"]);
+  }
+
+  return out;
+}
+
+/* =======================================================================
+   REMEDIATION TREATMENTS  (each transforms the chemistry)
+   ======================================================================= */
+const REMEDS = [
+  { id:"limestone", name:"Add limestone (liming)", icon:"⛰️",
+    desc:"Neutralises acidic water by raising pH toward neutral.",
+    chem:"CaCO₃ + 2H⁺ → Ca²⁺ + H₂O + CO₂",
+    apply:v=>{ v.ph = clamp(v.ph + (7.2 - v.ph)*0.6, 3, 8.2); } },
+
+  { id:"aeration", name:"Aeration / fountains", icon:"💨",
+    desc:"Pumps air through water, dissolving oxygen back in.",
+    chem:"O₂(gas) → O₂(aq) — restores dissolved oxygen",
+    apply:v=>{ v.do = clamp(v.do + 4.5, 0, 11); } },
+
+  { id:"wetland", name:"Constructed wetland", icon:"🌾",
+    desc:"Reed beds and microbes absorb nitrates & phosphates.",
+    chem:"Plants assimilate NO₃⁻ / PO₄³⁻; denitrification → N₂",
+    apply:v=>{ v.nitrate *= 0.35; v.phosphate *= 0.30; } },
+
+  { id:"carbon", name:"Activated carbon filter", icon:"⚫",
+    desc:"Adsorbs heavy metals and organic pollutants.",
+    chem:"Adsorption of metal ions onto carbon surface",
+    apply:v=>{ v.metals *= 0.25; } },
+
+  { id:"settling", name:"Sedimentation pond", icon:"🪨",
+    desc:"Lets suspended particles settle, clearing the water.",
+    chem:"Gravity settling reduces turbidity (NTU)",
+    apply:v=>{ v.turbidity *= 0.30; } },
+
+  { id:"buffer", name:"Riparian buffer strip", icon:"🌳",
+    desc:"Bank-side vegetation filters runoff before it enters.",
+    chem:"Roots trap sediment & uptake nutrients",
+    apply:v=>{ v.nitrate *= 0.7; v.phosphate *= 0.7; v.turbidity *= 0.6; } },
+];
+
+/* Apply selected remediations to a fresh copy of the chemistry */
+function treatedVals(){
+  const v = Object.assign({}, state.vals);
+  REMEDS.forEach(r=>{ if(state.remediation[r.id]) r.apply(v); });
+  return v;
+}
+
+/* =======================================================================
+   RENDERING
+   ======================================================================= */
+const $ = sel => document.querySelector(sel);
+
+function renderSources(){
+  const box = $("#sources"); box.innerHTML="";
+  SOURCES.forEach(s=>{
+    const b = document.createElement("button");
+    b.className = "source"+(state.source===s.id?" selected":"");
+    b.innerHTML = `<div class="emoji">${s.emoji}</div>
+      <div class="name">${s.name}</div>
+      <div class="desc">${s.desc}</div>`;
+    b.onclick = ()=>{
+      state.source = s.id;
+      state.vals = Object.assign({}, s.vals);
+      state.remediation = {};
+      renderSources();
+      $("#toAnalysis").disabled = false;
+    };
+    box.appendChild(b);
+  });
+}
+
+function renderParams(){
+  const src = SOURCES.find(s=>s.id===state.source);
+  $("#chemSourceTag").textContent = src ? "· "+src.emoji+" "+src.name : "";
+  const box = $("#params"); box.innerHTML="";
+  PARAMS.forEach(p=>{
+    const wrap = document.createElement("div");
+    wrap.className="param";
+    const val = state.vals[p.key];
+    wrap.innerHTML = `
+      <div class="plabel">
+        <span class="pname">${p.name}</span>
+        <span class="pval"><span id="v-${p.key}">${fmt(val,p)}</span> <small>${p.unit}</small></span>
+      </div>
+      <input type="range" min="${p.min}" max="${p.max}" step="${p.step}" value="${val}" id="r-${p.key}">
+      <div class="ideal">${p.ideal}</div>`;
+    box.appendChild(wrap);
+    wrap.querySelector("input").addEventListener("input",e=>{
+      state.vals[p.key] = parseFloat(e.target.value);
+      $("#v-"+p.key).textContent = fmt(state.vals[p.key],p);
+    });
+  });
+}
+function fmt(v,p){ return p.step<1 ? v.toFixed(p.step<0.5?2:1) : Math.round(v); }
+
+function setGauge(gEl,numEl,tagEl,textEl,score){
+  const b = band(score);
+  gEl.style.setProperty("--gcol", b.col);
+  gEl.style.setProperty("--p", score);
+  numEl.textContent = score;
+  tagEl.textContent = b.tag;
+  tagEl.style.background = b.col;
+  tagEl.style.color = "#04222f";
+  const msgs = {
+    "Healthy":"This water supports a thriving, balanced ecosystem and is close to safe for human use.",
+    "Stressed":"The ecosystem is under pressure. Sensitive species are declining and pollution is building up.",
+    "Critical":"Severe pollution. Most aquatic life cannot survive and the water is unsafe for people."
+  };
+  textEl.textContent = msgs[b.tag];
+}
+
+function renderImpact(){
+  const v = state.vals;
+  const score = healthScore(v);
+  state.baseScore = score;
+  setGauge($("#gauge"),$("#scoreNum"),$("#verdictTag"),$("#verdictText"),score);
+  const box = $("#impacts"); box.innerHTML="";
+  biologicalImpacts(v).forEach(([ic,title,desc,cls])=>{
+    const row=document.createElement("div");
+    row.className="impact "+cls;
+    const pill = cls==="ok"?"OK":cls==="warn"?"AT RISK":"CRITICAL";
+    row.innerHTML=`<div class="ic">${ic}</div>
+      <div class="body"><b>${title}<span class="pill ${cls}">${pill}</span></b><span>${desc}</span></div>`;
+    box.appendChild(row);
+  });
+}
+
+function renderRemed(){
+  const box=$("#remeds"); box.innerHTML="";
+  REMEDS.forEach(r=>{
+    const on = !!state.remediation[r.id];
+    const b=document.createElement("button");
+    b.className="remed"+(on?" on":"");
+    b.innerHTML=`<div class="rtop"><span class="rname">${r.icon} ${r.name}</span><span class="check">✓</span></div>
+      <div class="rdesc">${r.desc}</div>
+      <div class="rchem">${r.chem}</div>`;
+    b.onclick=()=>{ state.remediation[r.id]=!on; renderRemed(); updateRemedScore(); };
+    box.appendChild(b);
+  });
+  updateRemedScore();
+}
+
+function updateRemedScore(){
+  const v = treatedVals();
+  const score = healthScore(v);
+  setGauge($("#gauge2"),$("#scoreNum2"),$("#verdictTag2"),$("#verdictText2"),score);
+  const diff = score - state.baseScore;
+  const d=$("#delta");
+  if(diff>0)      d.innerHTML = `Health improved by <b>+${diff}</b> points from your starting score of ${state.baseScore}.`;
+  else if(diff<0) d.innerHTML = `Health changed by ${diff} points (started at ${state.baseScore}).`;
+  else            d.innerHTML = `Apply treatments to raise the score from ${state.baseScore}.`;
+}
+
+/* =======================================================================
+   NAVIGATION
+   ======================================================================= */
+const CARDS = ["card-source","card-chem","card-impact","card-remed"];
+function goto(step){
+  CARDS.forEach((id,i)=>$("#"+id).classList.toggle("hidden", i!==step-1));
+  document.querySelectorAll(".step").forEach(el=>{
+    el.classList.toggle("active", parseInt(el.dataset.step)===step);
+  });
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+$("#toAnalysis").onclick = ()=>{ renderParams(); goto(2); };
+$("#backTo1").onclick     = ()=>goto(1);
+$("#toImpact").onclick    = ()=>{ renderImpact(); goto(3); };
+$("#backTo2").onclick     = ()=>goto(2);
+$("#toRemed").onclick     = ()=>{ renderRemed(); goto(4); };
+$("#backTo3").onclick     = ()=>goto(3);
+$("#resetAll").onclick    = ()=>{
+  state={source:null,vals:{},remediation:{},baseScore:0};
+  renderSources(); $("#toAnalysis").disabled=true; goto(1);
+};
+
+/* init */
+renderSources();
+</script>
+</body>
+</html>
