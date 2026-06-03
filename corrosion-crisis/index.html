@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Corrosion Crisis: Save the Watershed</title>
+  <link rel="stylesheet" href="styles.css" />
+  <!-- Chart.js for live updating charts -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <header class="app-header">
+    <div class="title-block">
+      <h1>🌊 Corrosion Crisis</h1>
+      <p class="subtitle">Save the Watershed — An Environmental Engineering Simulation</p>
+    </div>
+    <div class="year-block">
+      <span class="year-label">YEAR</span>
+      <span id="year-display" class="year-value">0</span>
+      <span class="year-total">/ 20</span>
+    </div>
+  </header>
+
+  <!-- ============ START SCREEN ============ -->
+  <section id="start-screen" class="screen overlay-screen">
+    <div class="card intro-card">
+      <h2>Welcome, Environmental Engineer</h2>
+      <p>
+        You are responsible for protecting a city's water supply over
+        <strong>20 simulated years</strong>. The watershed's rivers and reservoirs are
+        becoming increasingly acidic due to <em>acid rain</em>, <em>industrial pollution</em>,
+        and <em>mining runoff</em>.
+      </p>
+      <p>As the water's pH falls, metals corrode faster, toxic metal ions enter the water,
+        water quality declines, and aquatic biodiversity collapses.</p>
+      <h3>Your mission — keep these stable until Year 20:</h3>
+      <ul class="objectives">
+        <li>💧 Water pH between <strong>6.0 and 8.0</strong></li>
+        <li>🐟 Biodiversity above <strong>60%</strong></li>
+        <li>🏗️ Infrastructure health above <strong>50%</strong></li>
+        <li>💰 Budget above <strong>$0</strong></li>
+      </ul>
+      <button id="start-btn" class="btn btn-primary btn-large">Begin Simulation ▶</button>
+    </div>
+  </section>
+
+  <!-- ============ MAIN GAME ============ -->
+  <main id="game-screen" class="screen hidden">
+
+    <!-- Dashboard meters -->
+    <section class="dashboard">
+      <div class="meter-card" id="card-ph">
+        <div class="meter-head"><span class="meter-icon">💧</span><span class="meter-name">Water pH</span></div>
+        <div class="meter-value" id="ph-value">7.0</div>
+        <div class="meter-bar"><div class="meter-fill" id="ph-fill"></div></div>
+        <div class="meter-range">2.0 – 8.0 &nbsp;(safe 6.0–8.0)</div>
+      </div>
+
+      <div class="meter-card" id="card-infra">
+        <div class="meter-head"><span class="meter-icon">🏗️</span><span class="meter-name">Infrastructure</span></div>
+        <div class="meter-value" id="infra-value">100%</div>
+        <div class="meter-bar"><div class="meter-fill" id="infra-fill"></div></div>
+        <div class="meter-range">0 – 100% &nbsp;(safe &gt;50%)</div>
+      </div>
+
+      <div class="meter-card" id="card-quality">
+        <div class="meter-head"><span class="meter-icon">🧪</span><span class="meter-name">Water Quality</span></div>
+        <div class="meter-value" id="quality-value">90</div>
+        <div class="meter-bar"><div class="meter-fill" id="quality-fill"></div></div>
+        <div class="meter-range">0 – 100</div>
+      </div>
+
+      <div class="meter-card" id="card-bio">
+        <div class="meter-head"><span class="meter-icon">🐟</span><span class="meter-name">Biodiversity</span></div>
+        <div class="meter-value" id="bio-value">90</div>
+        <div class="meter-bar"><div class="meter-fill" id="bio-fill"></div></div>
+        <div class="fish-row" id="fish-row"></div>
+        <div class="meter-range">0 – 100 &nbsp;(safe &gt;60%)</div>
+      </div>
+
+      <div class="meter-card" id="card-budget">
+        <div class="meter-head"><span class="meter-icon">💰</span><span class="meter-name">Budget</span></div>
+        <div class="meter-value" id="budget-value">$10,000</div>
+        <div class="meter-range">Spend wisely</div>
+      </div>
+    </section>
+
+    <div class="game-grid">
+      <!-- LEFT COLUMN: event + actions + log -->
+      <div class="col-left">
+        <section class="panel">
+          <h2 class="panel-title">📰 Annual Environmental Event</h2>
+          <div id="event-card" class="event-card">
+            <p class="event-hint">Press “Advance to Next Year” to begin Year 1.</p>
+          </div>
+        </section>
+
+        <section class="panel">
+          <h2 class="panel-title">⚙️ Choose One Action This Year</h2>
+          <div class="actions" id="actions">
+            <button class="btn action-btn" data-action="limestone">
+              <span class="act-title">Add Limestone</span>
+              <span class="act-cost">$500</span>
+              <span class="act-desc">pH +1 — CaCO₃ neutralizes acid</span>
+            </button>
+            <button class="btn action-btn" data-action="treatment">
+              <span class="act-title">Upgrade Water Treatment</span>
+              <span class="act-cost">$1,500</span>
+              <span class="act-desc">Water Quality +10</span>
+            </button>
+            <button class="btn action-btn" data-action="infra">
+              <span class="act-title">Replace Infrastructure</span>
+              <span class="act-cost">$2,000</span>
+              <span class="act-desc">Infrastructure +20</span>
+            </button>
+            <button class="btn action-btn" data-action="controls">
+              <span class="act-title">Install Pollution Controls</span>
+              <span class="act-cost">$1,000</span>
+              <span class="act-desc">−50% next pollution event</span>
+            </button>
+            <button class="btn action-btn" data-action="monitor">
+              <span class="act-title">Monitor Only</span>
+              <span class="act-cost">$0</span>
+              <span class="act-desc">No effect</span>
+            </button>
+          </div>
+          <button id="advance-btn" class="btn btn-primary btn-large">Advance to Next Year ▶</button>
+          <p id="status-line" class="status-line"></p>
+        </section>
+
+        <section class="panel">
+          <h2 class="panel-title">🔬 Scientific Pop-Ups (Corrosion Report)</h2>
+          <div id="science-log" class="science-log"></div>
+        </section>
+      </div>
+
+      <!-- RIGHT COLUMN: charts -->
+      <div class="col-right">
+        <section class="panel">
+          <h2 class="panel-title">📈 Live Watershed Charts</h2>
+          <div class="chart-box"><canvas id="phChart"></canvas></div>
+          <div class="chart-box"><canvas id="bioChart"></canvas></div>
+          <div class="chart-box"><canvas id="qualityChart"></canvas></div>
+          <div class="chart-box"><canvas id="infraChart"></canvas></div>
+        </section>
+      </div>
+    </div>
+
+    <!-- Educational panel -->
+    <section class="panel edu-panel">
+      <button id="edu-toggle" class="edu-toggle">📚 Science Behind the Simulation <span id="edu-arrow">▸</span></button>
+      <div id="edu-content" class="edu-content hidden">
+        <div class="edu-section">
+          <h3>pH and Acidity</h3>
+          <p>pH is the negative base-10 logarithm of the hydrogen-ion concentration,
+            pH = −log₁₀[H⁺]. Because the scale is logarithmic, a drop of one pH unit represents a
+            <strong>tenfold</strong> increase in [H⁺]. Pure water is neutral at pH 7; values below 7 are
+            acidic. Most freshwater aquatic life is adapted to a narrow circum-neutral band (≈6.0–8.0).</p>
+        </div>
+        <div class="edu-section">
+          <h3>Acid Rain</h3>
+          <p>Combustion of fossil fuels releases sulfur dioxide (SO₂) and nitrogen oxides (NOₓ).
+            In the atmosphere these form sulfuric and nitric acids:
+            SO₂ + ½O₂ + H₂O → H₂SO₄ and 4NO₂ + O₂ + 2H₂O → 4HNO₃. These strong acids dissociate fully,
+            lowering the pH of precipitation and the water bodies it feeds.</p>
+        </div>
+        <div class="edu-section">
+          <h3>Corrosion and the Reactivity Series</h3>
+          <p>Corrosion is the oxidation of a metal by its environment. In acidic water the high
+            concentration of H⁺ ions accelerates the reaction M + nH⁺ → Mⁿ⁺ + (n/2)H₂. The
+            <strong>reactivity series</strong> ranks metals by how readily they lose electrons. More
+            reactive metals (Mg &gt; Al &gt; Zn &gt; Fe &gt; Cu) corrode faster, so in this simulation each
+            metal's corrosion rate equals its reactivity score multiplied by an acidity factor that rises
+            sharply as pH falls.</p>
+        </div>
+        <div class="edu-section">
+          <h3>Metal-Ion Pollution</h3>
+          <p>As metals corrode they release ions (e.g. Fe²⁺, Zn²⁺, Al³⁺, Cu²⁺) into the water column.
+            Many of these are toxic to aquatic organisms even at low concentrations, disrupting gill
+            function and enzyme activity. Rising dissolved-metal loads lower the Water Quality Index.</p>
+        </div>
+        <div class="edu-section">
+          <h3>Biodiversity Impacts</h3>
+          <p>Acidification and metal pollution act as <em>abiotic stressors</em>. Sensitive species
+            (mayflies, salmonid eggs, molluscs) disappear first, simplifying the food web and reducing
+            biodiversity. Below about pH 5 reproductive failure becomes widespread; below pH 4 most
+            vertebrate life cannot survive. Maintaining buffering capacity is therefore essential to
+            ecosystem resilience.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Metals reference -->
+    <section class="panel">
+      <h2 class="panel-title">🏙️ City Metal Structures &amp; Reactivity</h2>
+      <div class="metals-grid" id="metals-grid"></div>
+    </section>
+  </main>
+
+  <!-- ============ END SCREEN ============ -->
+  <section id="end-screen" class="screen overlay-screen hidden">
+    <div class="card report-card">
+      <h2 id="report-title">Final Report</h2>
+      <div id="report-body" class="report-body"></div>
+      <button id="restart-btn" class="btn btn-primary btn-large">Run Simulation Again ↺</button>
+    </div>
+  </section>
+
+  <script src="game.js"></script>
+</body>
+</html>
